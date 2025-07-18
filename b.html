@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reproductor M3U8</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+    video {
+      width: 100%;
+      max-width: 800px;
+      border: 2px solid red;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Reproductor HLS (.m3u8)</h2>
+  <video id="video" controls autoplay></video>
+  <p id="msg"></p>
+
+  <script>
+    // ? Obtener parámetro 'link' desde la URL
+    const params = new URLSearchParams(window.location.search);
+    const m3u8Url = params.get("link");
+    const video = document.getElementById("video");
+    const msg = document.getElementById("msg");
+
+    if (!m3u8Url) {
+      msg.textContent = "❌ No se proporcionó un enlace M3U8.";
+    } else {
+      msg.innerHTML = `🎥 Cargando stream desde: <br><code>${m3u8Url}</code>`;
+
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(m3u8Url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+          video.play();
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        // * Soporte nativo (Safari)
+        video.src = m3u8Url;
+        video.addEventListener("loadedmetadata", function () {
+          video.play();
+        });
+      } else {
+        msg.textContent = "❌ Tu navegador no soporta reproducción HLS.";
+      }
+    }
+  </script>
+</body>
+</html>
